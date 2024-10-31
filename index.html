@@ -49,6 +49,18 @@
     L: { category: category_list_shuffled[11], image_name: img_path + category_list_shuffled[11] + "_" + img_id + img_extension }
   };
 
+  // Extract the image paths for preloading
+  var image_paths = Object.values(stimulus_list).map(item => item.image_name);
+  
+  // Set up the preload with the specific image paths
+  var preload = {
+  type: jsPsychPreload,
+  images: image_paths // Specify the images array for preloading
+  };
+
+  // Run just the preload phase
+  jsPsych.run([preload]);
+
   //create a "toy" trial list of 15 images
   // How can we expand this stream of images into a more general, randomized trial list?
   var trial_list = ["A", "B", "C", "D", "E", "F", "A", "B", "C", "J", "K", "L", "G", "H", "I"]
