@@ -52,6 +52,18 @@
   //create a "toy" trial list of 15 images
   // How can we expand this stream of images into a more general, randomized trial list?
   var trial_list = ["A", "B", "C", "D", "E", "F", "A", "B", "C", "J", "K", "L", "G", "H", "I"]
+  var randomized_list = jsPsych.randomization.shuffle(toy_list);
+
+  var t1 =[randomized_list.slice(0,3)];
+  var t2 =[randomized_list.slice(3,6)];
+  var t3 =[randomized_list.slice(6,9)];
+  var t4 =[randomized_list.slice(9,12)];
+
+  var trips_list = [t1, t2, t3, t4]
+
+  var randomize_trips = jsPsych.randomization.shuffle(trips_list);
+  var trips_shuffled = randomize_trips.flat(Infinity);
+  console.log(trips_shuffled)
 
   //create an array telling us when to repeat one of the images
   // how can we generalize this for the full trial list
