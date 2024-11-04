@@ -5,7 +5,13 @@
   <title>My experiment</title>
   <script src="https://unpkg.com/jspsych@8.0.0"></script>
   <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@2.0.0"></script>
+<<<<<<< Updated upstream
   <script src="https://unpkg.com/@jspsych/plugin-preload@2.0.0"></script>
+=======
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-fullscreen@1.2.1"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-text@2.0.0"></script>
+>>>>>>> Stashed changes
   <link href="https://unpkg.com/jspsych@8.0.0/css/jspsych.css" rel="stylesheet" type="text/css" />
 </head>
 
@@ -21,6 +27,47 @@
 
   /* create timeline */
   var timeline = [];
+
+  /* welcome */
+  var welcome = {
+   type: jsPsychHtmlKeyboardResponse,
+   stimulus: "Welcome to the experiment. Press any key to begin.",
+ };
+
+ /* full screen */
+ var enter_fullscreen ={
+  type: jsPsychFullscreen,
+  fullscreen_mode:true
+ }
+ timeline.push(enter_fullscreen);
+
+ /* participant ID */
+ var participant_id_entry= {
+  type: jsPsychSurveyText,
+  questions: [{prompt:"Please enter your participant ID (e.g. p1):", name:"participant_id"}],
+  on_finish: function(data){
+    console.log(data.response)
+    jsPsych.data.addProperties({
+      participant: data.response.participant_id
+    });
+  }
+ };
+
+ timeline.push(welcome);
+
+ timeline.push(participant_id_entry);
+
+ /* instructions*/
+ var instructions = {
+   type: jsPsychHtmlKeyboardResponse,
+   stimulus: `
+  <p>For this trial, you will see a series of images.</p>
+  <p>Press the spacebar whenever you see a repeat of an image.</p>
+  <p>Press any key to begin.</p>`
+ };
+
+ //add the instructions trial to the timeline
+ timeline.push(instructions);
 
   /* create stimulus list */
   //first create a list of categories
@@ -88,6 +135,9 @@
   // also create a running counter tracking the repeat images we've added
   var trial_counter = 0
   var repeat_counter = 0
+
+  // Spacebar task timeline
+  var spacebar_timeline = [];
 
   //create a for loop to run through the trial list
   for (i = 0; i < trial_list.length; i++) {
@@ -161,6 +211,82 @@
     trial_counter = trial_counter + 1;
 
   }
+
+  // Set a 5-minute timer for the spacebar task
+  jsPsych.pluginAPI.setTimeout(function() {
+    jsPsych.endCurrentTimeline();
+  }, 300000); // 300000 ms = 5 minutes
+
+  // Push spacebar task to main timeline as a conditional block
+  timeline.push({
+    timeline: spacebar_timeline
+  });
+
+  /* instructions*/
+ var instructions_2 = {
+   type: jsPsychHtmlKeyboardResponse,
+   stimulus: `
+  <p>For this next trial, you will see two sets of images.</p>
+  <p>Press 1 or 2 if either the first or second sequence is more familiar.</p>
+  <p>Press any key to begin.</p>`
+ };
+
+ timeline.push(instructions_2);
+
+ 
+
+  // Recognition test phase
+  var recognition_pairs = [
+    { triplet: ["A", "B", "C"], foil: ["D", "E", "F"] },
+    { triplet: ["G", "H", "I"], foil: ["J", "K", "L"] }
+  ];
+  
+  recognition_pairs.forEach(function(pair, index) {
+    var triplet_images = pair.triplet.map(letter => stimulus_list[letter].image_name);
+    var foil_images = pair.foil.map(letter => stimulus_list[letter].image_name);
+
+    var recognition_trial = {
+      type: jsPsychImageKeyboardResponse,
+      stimulus: jsPsych.timelineVariable('stimulus'),
+      choices: ['1', '2'],
+      prompt: "<p>Press '1' if the first sequence seems more familiar, or '2' if the second sequence seems more familiar.</p>",
+      data: { test_type: "recognition", correct_response: "1" },
+      timeline: [
+        {
+          stimulus: triplet_images[0],
+          trial_duration: 1000,
+          post_trial_gap: 300
+        },
+        {
+          stimulus: triplet_images[1],
+          trial_duration: 1000,
+          post_trial_gap: 300
+        },
+        {
+          stimulus: triplet_images[2],
+          trial_duration: 1000,
+          post_trial_gap: 1000
+        },
+        {
+          stimulus: foil_images[0],
+          trial_duration: 1000,
+          post_trial_gap: 300
+        },
+        {
+          stimulus: foil_images[1],
+          trial_duration: 1000,
+          post_trial_gap: 300
+        },
+        {
+          stimulus: foil_images[2],
+          trial_duration: 1000,
+          post_trial_gap: 1000
+        }
+      ],
+      response_ends_trial: true
+    };
+    timeline.push(recognition_trial);
+  });
 
   /* start the experiment */
   jsPsych.run(timeline);
